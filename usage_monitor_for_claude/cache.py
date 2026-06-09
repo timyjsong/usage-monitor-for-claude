@@ -131,7 +131,9 @@ class UsageCache:
         """Fetch the account profile if not yet loaded, or re-fetch if the access token changed (thread-safe).
 
         Acquires ``_lock`` around the HTTP call to prevent concurrent
-        API requests with ``update()``.
+        API requests with ``update()``.  Skips the fetch while a
+        rate-limit backoff is active so a failed profile request does not
+        keep hammering an already 429-limited endpoint.
         """
         current_token = read_access_token()
         if self._profile is not None and self._profile_token == current_token:
@@ -141,6 +143,15 @@ class UsageCache:
             current_token = read_access_token()
             if self._profile is not None and self._profile_token == current_token:
                 return
+
+            # Respect the rate-limit backoff window. A failed profile fetch
+            # leaves _profile as None, so without this guard every popup open
+            # would re-fire a request against an already 429-limited endpoint
+            # and could prolong the backoff.
+            if time.time() < self._rate_limit_until:
+                log.debug('ensure_profile skipped (rate-limit backoff, %.0fs remaining)', self._rate_limit_until - time.time())
+                return
+
             log.info('fetch_profile started')
             with self._lock:
                 profile = fetch_profile()

@@ -702,6 +702,48 @@ class TestEnsureProfile(unittest.TestCase):
         mock_fetch.assert_not_called()
 
     @patch('usage_monitor_for_claude.cache.fetch_profile', return_value={'name': 'Test User'})
+    @patch('usage_monitor_for_claude.cache.time')
+    def test_skips_during_rate_limit_backoff(self, mock_time, mock_fetch):
+        """ensure_profile() does not fetch while the 429 backoff window is active."""
+        cache = _make_cache()
+        cache._rate_limit_until = 1300.0
+        mock_time.time.return_value = 1000.0
+
+        cache.ensure_profile()
+
+        mock_fetch.assert_not_called()
+        self.assertIsNone(cache.profile)
+
+    @patch('usage_monitor_for_claude.cache.fetch_profile', return_value={'name': 'Test User'})
+    @patch('usage_monitor_for_claude.cache.time')
+    def test_fetches_after_rate_limit_expires(self, mock_time, mock_fetch):
+        """ensure_profile() fetches once the 429 backoff window has elapsed."""
+        cache = _make_cache()
+        cache._rate_limit_until = 1300.0
+        mock_time.time.return_value = 1400.0
+
+        cache.ensure_profile()
+
+        mock_fetch.assert_called_once()
+        self.assertEqual(cache.profile, {'name': 'Test User'})
+
+    @patch('usage_monitor_for_claude.cache.fetch_profile', return_value={'name': 'New User'})
+    @patch('usage_monitor_for_claude.cache.read_access_token', return_value='token-b')
+    @patch('usage_monitor_for_claude.cache.time')
+    def test_token_change_refetch_skipped_during_backoff(self, mock_time, _mock_token, mock_fetch):
+        """A token-change re-fetch is also suppressed while the 429 backoff is active."""
+        cache = _make_cache()
+        cache._profile = {'name': 'Old User'}
+        cache._profile_token = 'token-a'
+        cache._rate_limit_until = 1300.0
+        mock_time.time.return_value = 1000.0
+
+        cache.ensure_profile()
+
+        mock_fetch.assert_not_called()
+        self.assertEqual(cache.profile, {'name': 'Old User'})
+
+    @patch('usage_monitor_for_claude.cache.fetch_profile', return_value={'name': 'Test User'})
     def test_concurrent_calls_fetch_only_once(self, mock_fetch):
         """Two threads calling ensure_profile result in only one fetch_profile call."""
         import threading
