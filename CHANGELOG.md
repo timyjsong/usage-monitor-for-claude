@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Tray icon bars now mirror the detail popup's pace cues: each bar in `utilization` mode shows a thin marker at the elapsed-time position of the quota period, and the bar fill turns red once usage moves ahead of the elapsed time (or reaches 100%), so you can tell at a glance whether you are ahead of or behind the clock without opening the popup. A new `fg_warn` color in the `icon_light`/`icon_dark` settings controls the warning fill (thanks to [@timyjsong](https://github.com/timyjsong) for the contribution)
+- The five-hour session bar in the detail popup is now subdivided into five equal hour sections by subtle dividers, matching the day dividers on the weekly bars, so you can gauge your position within the session window at a glance (thanks to [@timyjsong](https://github.com/timyjsong) for the contribution)
 
 ### Fixed
 
