@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+[Show all code changes](https://github.com/jens-duttke/usage-monitor-for-claude/compare/v1.16.0...HEAD)
+
+## [1.16.0] - 2026-06-13
+
 ### Added
 
 - Tray icon bars now mirror the detail popup's pace cues: each bar in `utilization` mode shows a thin marker at the elapsed-time position of the quota period, and the bar fill turns red once usage moves ahead of the elapsed time (or reaches 100%), so you can tell at a glance whether you are ahead of or behind the clock without opening the popup. A new `fg_warn` color in the `icon_light`/`icon_dark` settings controls the warning fill (thanks to [@timyjsong](https://github.com/timyjsong) for the contribution)
@@ -16,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Profile requests no longer ignore the rate-limit backoff](https://github.com/jens-duttke/usage-monitor-for-claude/issues/48) - while the API is returning HTTP 429, opening the popup could keep firing account-profile requests against the already rate-limited endpoint and prolong the backoff; profile fetches now wait out the backoff window like usage fetches do
 
-[Show all code changes](https://github.com/jens-duttke/usage-monitor-for-claude/compare/v1.15.1...HEAD)
+[Show all code changes](https://github.com/jens-duttke/usage-monitor-for-claude/compare/v1.15.1...v1.16.0)
 
 ## [1.15.1] - 2026-05-17
 
